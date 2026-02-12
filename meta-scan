@@ -1,0 +1,48 @@
+// FUNCTIONS
+get_vuln_target = function(str)
+  s = str.indexOf("<b>")
+  e = str.indexOf("</b>")
+
+  if s != null and e != null then
+    s = s + "<b>".len
+    result = str[s:e]
+  else
+    result = ""
+  end if
+  return result
+end function
+
+// Load and check for metaxploit
+if params.len != 1 or params[0] == "-h" or params[0] == "--help" then exit("<b>Usage: "+program_path.split("/")[-1]+" [ip_address]</b>")
+metaxploit = include_lib("/lib/metaxploit.so")
+if not metaxploit then
+  metaxploit = include_lib(current_path + "/metaxploit.so")
+end if
+if not metaxploit then exit("Error: Can't find metaxploit library in the /lib path or the current folder")
+
+// Connect to the ip address with a null session
+address = params[0]
+net_session = metaxploit.net_use( address )
+if not net_session then exit("Error: Can't connect to net session")
+metaLib = net_session.dump_lib
+
+print("===== Beginning Scan ======")
+metaScan = metaxploit.scan(metaLib)
+
+print("Found "+metaScan.len+" exploits")
+i = 0
+for vuln in metaScan
+  i = i+1
+  memory_scan = metaxploit.scan_address(metaLib, vuln)
+  mem_arr = memory_scan.split("\n")
+  print(i+": "+vuln)
+  for each in mem_arr
+    v_target = get_vuln_target(each)
+    if v_target.len > 0 then 
+      result = metaLib.overflow(vuln, v_target)
+      print(v_target+": "+typeof(result))
+    end if
+  end for
+end for
+print(metaLib.lib_name+" v"+metaLib.version)
+exit("===== Scan complete =====")
