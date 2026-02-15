@@ -72,11 +72,16 @@ end function
 // ============================================================================ 
 // State Machine
 // ============================================================================
-
+States = {
+    "IDLE": 0,
+    "RUNNING": 1,
+    "PAUSED": 2,
+    "STOPPED": 3
+}
 StateMachine = {}
-// Define SM variables
-StateMahine.currentState = "idle" // initial state
-StateMachine.states = null
+// Define variables
+StateMahine.currentState = "IDLE" // initial state
+StateMachine.states = States
 StateMachine.params = params // TODO: add proper param parser into new map
 
 StateMachine.update = function
